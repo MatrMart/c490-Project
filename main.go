@@ -32,7 +32,22 @@ type user struct {
 	Lname       string
 	DisplayName string
 	Email       string
+	PicURL      string
 	Posts       []post
+}
+
+type feedPost struct {
+	FriendPic  string
+	FriendName string
+	Tstamp     string
+	Txt        string
+}
+type uFeed struct {
+	DisplayName string
+	Fname       string
+	Lname       string
+	PicURL      string
+	Posts       []feedPost
 }
 
 func main() {
@@ -74,7 +89,7 @@ func checkError(err error) {
 
 func login(w http.ResponseWriter, r *http.Request) {
 	//session, _ := store.Get(r, "Logged-in")
-	tpl.ExecuteTemplate(w, "login.html", nil)
+	tpl.ExecuteTemplate(w, "login.html", "")
 
 }
 
@@ -94,20 +109,20 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		authFail(w, r)
 	}
 	fmt.Println(u, pwrd)
-	fmt.Println(u, p)
 
 	row = db.QueryRow("SELECT pword FROM SecurePass WHERE userid = ?", u)
 	err = row.Scan(&p)
-	fmt.Println(p)
+	fmt.Println(u, p)
 	if err != nil {
 		fmt.Println("did not find user in database")
 		authFail(w, r)
 	}
 
-	fmt.Println(u, p)
-	if err != nil {
-		tpl.ExecuteTemplate(w, "login.html", "Wrong email or password")
-	}
+	fmt.Println(p, pwrd)
+	//if err != nil {
+	//tpl.ExecuteTemplate(w, "login.html", "Wrong email or password")
+	checkError(err)
+	//}
 
 	if p == pwrd {
 
@@ -115,14 +130,18 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		session.Values["userID"] = u
 		session.Save(r, w)
 		fmt.Println(session.Values["authenticated"])
+	} else {
+		//msg := "Authentication failed.  Please try again"
+		authFail(w, r)
+		//tpl.ExecuteTemplate(w, "login.html", msg)
 	}
 
-	fmt.Fprintln(w, "Profile view \n\n")
-	profileView(w, r)
-	fmt.Fprintln(w, "\n\nUserFeed\n\n")
+	//fmt.Fprintln(w, "Profile view \n\n")
+	//profileView(w, r)
+	//fmt.Fprintln(w, "\n\nUserFeed\n\n")
 	userFeed(w, r)
-	fmt.Fprintln(w, "\n\nAll Feed\n\n")
-	allFeed(w, r)
+	//fmt.Fprintln(w, "\n\nAll Feed\n\n")
+	//allFeed(w, r)
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
@@ -136,13 +155,14 @@ func logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func authFail(w http.ResponseWriter, r *http.Request) {
+	fail := template.Must(template.New("failed").Parse("templates/login.html"))
 	session, _ := store.Get(r, "Logged-in")
 	session.Values["authenticated"] = false
 	session.Values["userID"] = ""
 	session.Save(r, w)
-
-	tpl.ExecuteTemplate(w, "login.html", "Authentication failed.  Please try again.")
-
+	fmt.Println("did it fail here")
+	fail.Execute(w, "Authentication failed. Please try again.")
+	fmt.Println("or here")
 }
 
 func loggedIn(w http.ResponseWriter, r *http.Request) bool {
@@ -160,8 +180,8 @@ func profileView(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(usr)
 	u.Userid = usr
 
-	row := db.QueryRow("SELECT fname, lname, displayname, email FROM SocUser WHERE userid = ?", usr)
-	err := row.Scan(&u.Fname, &u.Lname, &u.DisplayName, &u.Email)
+	row := db.QueryRow("SELECT * FROM SocUser WHERE userid = ?", usr)
+	err := row.Scan(&u.Fname, &u.Lname, &u.DisplayName, &u.Email, &u.PicURL)
 	checkError(err)
 
 	rows, err := db.Query("SELECT * FROM post WHERE userid= ? ORDER BY tstamp DESC", u.Userid)
@@ -190,15 +210,18 @@ func userFeed(w http.ResponseWriter, r *http.Request) {
 	var (
 		u   user
 		qry string
+		uf  uFeed
 	)
 
 	session, _ := store.Get(r, "Logged-in")
 	usr := session.Values["userID"].(int)
 
 	row := db.QueryRow("SELECT * FROM SocUser WHERE userid = ?", usr)
-	err := row.Scan(&u.Userid, &u.Fname, &u.Lname, &u.DisplayName, &u.Email)
+	err := row.Scan(&u.Userid, &u.Fname, &u.Lname, &u.DisplayName, &u.Email, &u.PicURL)
 	checkError(err)
 	fmt.Println(u)
+	uf.DisplayName = u.DisplayName
+	uf.PicURL = u.PicURL
 
 	fRows, err := db.Query("SELECT friendid FROM FriendList WHERE userid = ?", usr)
 	checkError(err)
@@ -228,13 +251,24 @@ func userFeed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, v := range u.Posts {
-		var u string
-		row := db.QueryRow("SELECT displayname FROM SocUser where userid = ?", v.Userid)
-		err := row.Scan(&u)
+		var u, p string
+		var fd feedPost
+		row := db.QueryRow("SELECT displayname,picurl FROM SocUser where userid = ?", v.Userid)
+		err := row.Scan(&u, &p)
 		checkError(err)
-		fmt.Fprintln(w, u)
-		fmt.Fprintln(w, v.Tstamp, " ", v.Txt, "\n")
+
+		fd.FriendName = u
+		fd.FriendPic = p
+		fd.Tstamp = v.Tstamp
+		fd.Txt = v.Txt
+		uf.Posts = append(uf.Posts, fd)
+
+		//fmt.Fprintln(w, fd.FriendName, "  ", fd.FriendPic, "\n")
+		//fmt.Fprintln(w, v.Tstamp, " ", v.Txt, "\n")
+
 	}
+
+	tpl.ExecuteTemplate(w, "profile.html", uf)
 
 }
 
@@ -298,5 +332,5 @@ func addPost(w http.ResponseWriter, r *http.Request) {
 	_, err := db.Exec("INSERT INTO post (userid, tstamp, txt) VALUES (?,?,?)", usr, ts, newtxt)
 	checkError(err)
 
-	profileView(w, r)
+	userFeed(w, r)
 }
