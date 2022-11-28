@@ -22,6 +22,7 @@ CREATE TABLE SocUser (
     lname       VARCHAR(255),
     displayname VARCHAR(255),
     email       VARCHAR(255),
+    picurl    VARCHAR(255),
     PRIMARY KEY (`userid`)
 );
 
@@ -50,15 +51,15 @@ ALTER TABLE SecurePass
 
 
 INSERT INTO SocUser
-    (fname, lname, displayname, email)
+    (fname, lname, displayname, email, picurl)
 VALUES
-('Matt', 'Martin', 'Jug', 'matrmart@iu.edu'),
-('Michaelina', 'Magnuson', 'MickyFree', 'Mdwewe@msu.edu'),
-('Autumn', 'Ramirez', 'AutoMir', 'AutMonkey@gmail.com'),
-('Ruben', 'Saldivar', 'RuTheMan', 'RuTheMan@gmail.com'),
-('Jonathan', 'Zook', 'ReverendHowitzer', 'BivBiy@gmail.com'),
-('Christian', 'Palmer', 'DuffelBlog', 'LtColDuffelBlog@gmail.com'),
-('Alex', 'Jones', 'Samsquatch', 'Beardy@gmail.com');
+('Matt', 'Martin', 'Jug', 'matrmart@iu.edu', 'https://espinvr.com/wp-content/uploads/2020/10/Matt.png'),
+('Michaelina', 'Magnuson', 'MickyFree', 'Mdwewe@msu.edu', 'https://espinvr.com/wp-content/uploads/2020/10/Micky.png'),
+('Autumn', 'Ramirez', 'AutoMir', 'AutMonkey@gmail.com','https://espinvr.com/wp-content/uploads/2020/10/Autumn.png'),
+('Ruben', 'Saldivar', 'RuTheMan', 'RuTheMan@gmail.com','https://espinvr.com/wp-content/uploads/2022/11/Ruben.jpg'),
+('Jonathan', 'Zook', 'ReverendHowitzer', 'BivBiy@gmail.com','https://espinvr.com/wp-content/uploads/2020/10/Jonathan.png'),
+('Christian', 'Palmer', 'DuffelBlog', 'LtColDuffelBlog@gmail.com','https://espinvr.com/wp-content/uploads/2022/11/Palmer.jpg'),
+('Alex', 'Jones', 'Samsquatch', 'Beardy@gmail.com','https://espinvr.com/wp-content/uploads/2020/10/Alex.png');
 
 INSERT INTO SecurePass
     (userid, pword)
