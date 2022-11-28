@@ -1,14 +1,19 @@
 
 <html>
-<head>
+  
+<header>
+    <div class="menu">
+        <li class="nav"></li>
+            <a href="./logout" class="link">Logout</a>
+        </li>
+    </div>
     <title>Espin Social</title>
     <style>
-        img{
+        
+        img.UserPic{
             width: 100px;
             height: 100px;
             border-radius: 25px;
-            position: center;
-            margin-right: 10px;
             
         }
         img.friendpics{
@@ -23,17 +28,27 @@
         h1{
             text-align: center;
         }
+
+        p.userinfo{
+            padding: 10px; 
+            border: 2px solid gray; 
+            border-radius: 10px;
+            box-shadow: 20px 20px 50px 15px grey;
+            font-size: large;
+            font-weight: bold;
+        }
     </style>
 
-</head>
+</header>
 <body>
-<img src={{.PicURL}}>
+    <p class="userinfo">
+<img class="UserPic" src={{.PicURL}}>
 
-<h1> {{.DisplayName}}'s friends are saying:</h1>
-<br><br>
+{{.DisplayName}}'s friends are saying:
+</p>
 <p>
 {{range .Posts}}
-    <p  style="padding: 10px; border: 2px solid gray;">
+    <p  style="padding: 10px; border: 2px solid gray; border-radius: 10px;">
     <img class="friendpics"src="{{.FriendPic}}">
     {{.FriendName}}
     <br>
