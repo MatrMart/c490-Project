@@ -17,7 +17,7 @@ CREATE TABLE post (
 DROP TABLE IF EXISTS SocUser;
 CREATE TABLE SocUser (
     userid      INT AUTO_INCREMENT NOT NULL,
-    pword       VARCHAR(255),
+ --   pword       VARCHAR(255),
     fname       VARCHAR(255),
     lname       VARCHAR(255),
     displayname VARCHAR(255),
@@ -25,24 +25,51 @@ CREATE TABLE SocUser (
     PRIMARY KEY (`userid`)
 );
 
+DROP TABLE IF EXISTS SecurePass;
+CREATE TABLE SecurePass (
+    userid      INT NOT NULL,
+    pword       VARCHAR(255),
+    PRIMARY KEY (`userid`)
+);
 
+
+DROP TABLE IF EXISTS FriendList;
+CREATE TABLE FriendList (
+    userid      INT NOT NULL,
+    friendid    INT NOT NULL  
+);
 
 ALTER TABLE post
     ADD CONSTRAINT post_user_fk FOREIGN KEY ( userid )
         REFERENCES SocUser ( userid );
 
+ALTER TABLE SecurePass
+    ADD CONSTRAINT user_pass_fk FOREIGN KEY ( userid )
+        REFERENCES SocUser ( userid );
+
 
 
 INSERT INTO SocUser
-    (pword, fname, lname, displayname, email)
+    (fname, lname, displayname, email)
 VALUES
-('Password1', 'Matt', 'Martin', 'Jug', 'matrmart@iu.edu'),
-( 'Password2', 'Michaelina', 'Magnuson', 'MickyFree', 'Mdwewe@msu.edu'),
-( 'Password3', 'Autumn', 'Ramirez', 'AutoMir', 'AutMonkey@gmail.com'),
-( 'Password4', 'Ruben', 'Saldivar', 'RuTheMan', 'RuTheMan@gmail.com'),
-( 'Password5', 'Jonathan', 'Zook', 'ReverendHowitzer', 'BivBiy@gmail.com'),
-( 'Password6', 'Christian', 'Palmer', 'DuffelBlog', 'LtColDuffelBlog@gmail.com'),
-( 'Password7', 'Alex', 'Jones', 'Samsquatch', 'Beardy@gmail.com');
+('Matt', 'Martin', 'Jug', 'matrmart@iu.edu'),
+('Michaelina', 'Magnuson', 'MickyFree', 'Mdwewe@msu.edu'),
+('Autumn', 'Ramirez', 'AutoMir', 'AutMonkey@gmail.com'),
+('Ruben', 'Saldivar', 'RuTheMan', 'RuTheMan@gmail.com'),
+('Jonathan', 'Zook', 'ReverendHowitzer', 'BivBiy@gmail.com'),
+('Christian', 'Palmer', 'DuffelBlog', 'LtColDuffelBlog@gmail.com'),
+('Alex', 'Jones', 'Samsquatch', 'Beardy@gmail.com');
+
+INSERT INTO SecurePass
+    (userid, pword)
+VALUES
+(1,'Password1'),
+(2,'Password2'),
+(3,'Password3'),
+(4,'Password4'),
+(5,'Password5'),
+(6,'Password6'),
+(7,'Password7');
 
 INSERT INTO post
     (userid, tstamp, txt)
@@ -69,4 +96,34 @@ VALUES
 (6, '2022-11-12 12:15:00', 'Denial, anger...just two stages of grieving left before the fringe can join the rest of us in planning for the midterms.'),
 (7, '2022-11-23 23:15:00', 'When life get''s ya down, make a comforter...'),
 (7, '2022-11-20 07:45:00', 'Everything is perfect about the past except that it led to the present - Homer Simpson.'),
-(7, '2022-11-14 21:55:00', 'As of next week, passwords will be entered in Morse code!');
+(7, '2022-11-14 21:55:00', 'As of next week, passwords will be entered in Morse code!'),
+(1, '2022-11-26 23:27:59', 'Here I go working on a group project...'),
+(7, '2022-11-26 23:39:20', 'Honk if you like bigfoots... bigfeet... like the plural of saquatches n stuff.');
+
+INSERT INTO FriendList
+    (userid, friendid)
+VALUES
+    (1,2),
+    (1,3),
+    (1,4),
+    (1,7),
+    (2,1),
+    (2,5),
+    (2,6),
+    (3,1),
+    (3,5),
+    (3,6),
+    (3,7),
+    (4,1),
+    (4,5),
+    (4,6),
+    (4,7),
+    (5,2),
+    (5,3),
+    (5,4),
+    (6,2),
+    (6,3),
+    (6,4),
+    (7,1),
+    (7,3),
+    (7,4);
