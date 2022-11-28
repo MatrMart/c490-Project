@@ -15,6 +15,7 @@ import (
 )
 
 var tpl *template.Template
+var logFail *template.Template
 var db *sql.DB
 var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
@@ -50,6 +51,10 @@ type uFeed struct {
 	Posts       []feedPost
 }
 
+type msg struct {
+	txt string
+}
+
 func main() {
 	// Capture connection properties.
 	cfg := mysql.Config{
@@ -62,6 +67,7 @@ func main() {
 	}
 	mux := http.NewServeMux()
 	tpl, _ = template.ParseGlob("templates/*.html")
+	logFail = template.Must(template.ParseFiles("./templates/login.html"))
 
 	var err error
 	db, err = sql.Open("mysql", cfg.FormatDSN())
@@ -89,11 +95,14 @@ func checkError(err error) {
 
 func login(w http.ResponseWriter, r *http.Request) {
 	//session, _ := store.Get(r, "Logged-in")
-	tpl.ExecuteTemplate(w, "login.html", "")
+	var m msg
+	m.txt = ""
+	tpl.ExecuteTemplate(w, "login.html", m)
 
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
+
 	fmt.Println("check1")
 	var u int
 	var p string
@@ -104,25 +113,24 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 	row := db.QueryRow("SELECT userid FROM SocUser WHERE email = ?", em)
 	err := row.Scan(&u)
-	if err != nil {
-		fmt.Println("did not find user in database")
+
+	if err == sql.ErrNoRows {
 		authFail(w, r)
+		return
 	}
+
 	fmt.Println(u, pwrd)
 
 	row = db.QueryRow("SELECT pword FROM SecurePass WHERE userid = ?", u)
 	err = row.Scan(&p)
 	fmt.Println(u, p)
-	if err != nil {
-		fmt.Println("did not find user in database")
+
+	if err == sql.ErrNoRows {
 		authFail(w, r)
+		return
 	}
 
 	fmt.Println(p, pwrd)
-	//if err != nil {
-	//tpl.ExecuteTemplate(w, "login.html", "Wrong email or password")
-	checkError(err)
-	//}
 
 	if p == pwrd {
 
@@ -130,18 +138,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		session.Values["userID"] = u
 		session.Save(r, w)
 		fmt.Println(session.Values["authenticated"])
+		userFeed(w, r)
 	} else {
-		//msg := "Authentication failed.  Please try again"
 		authFail(w, r)
-		//tpl.ExecuteTemplate(w, "login.html", msg)
 	}
-
-	//fmt.Fprintln(w, "Profile view \n\n")
-	//profileView(w, r)
-	//fmt.Fprintln(w, "\n\nUserFeed\n\n")
-	userFeed(w, r)
-	//fmt.Fprintln(w, "\n\nAll Feed\n\n")
-	//allFeed(w, r)
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
@@ -155,13 +155,16 @@ func logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func authFail(w http.ResponseWriter, r *http.Request) {
-	fail := template.Must(template.New("failed").Parse("templates/login.html"))
+	msg := make(map[string]string)
+	msg["txt"] = "Authentication failed.  Please try again."
+
 	session, _ := store.Get(r, "Logged-in")
 	session.Values["authenticated"] = false
 	session.Values["userID"] = ""
 	session.Save(r, w)
 	fmt.Println("did it fail here")
-	fail.Execute(w, "Authentication failed. Please try again.")
+
+	tpl.ExecuteTemplate(w, "login.html", msg)
 	fmt.Println("or here")
 }
 
@@ -172,7 +175,14 @@ func loggedIn(w http.ResponseWriter, r *http.Request) bool {
 }
 
 func profileView(w http.ResponseWriter, r *http.Request) {
-	var u user
+	if !(loggedIn(w, r)) {
+		login(w, r)
+		return
+	}
+	var (
+		u user
+		//uf  uFeed
+	)
 
 	session, _ := store.Get(r, "Logged-in")
 	usr := session.Values["userID"].(int)
@@ -205,6 +215,7 @@ func profileView(w http.ResponseWriter, r *http.Request) {
 func userFeed(w http.ResponseWriter, r *http.Request) {
 	if !(loggedIn(w, r)) {
 		login(w, r)
+		return
 	}
 
 	var (
@@ -282,6 +293,7 @@ func allFeed(w http.ResponseWriter, r *http.Request) {
 
 	if !ok {
 		login(w, r)
+		return
 	}
 
 	// A post slice to hold data from returned rows.
@@ -315,6 +327,7 @@ func allFeed(w http.ResponseWriter, r *http.Request) {
 func newPost(w http.ResponseWriter, r *http.Request) {
 	if !(loggedIn(w, r)) {
 		login(w, r)
+		return
 	}
 	tpl.ExecuteTemplate(w, "newPost.html", nil)
 }
