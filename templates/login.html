@@ -1,0 +1,44 @@
+<html>
+    <head>
+        <style>
+            body{
+                text-align: center;
+                background-image: url('https://espinvr.com/wp-content/uploads/2020/02/20200212_164010-scaled.jpg');
+                
+            }
+            form.loginform{
+                display: inline-block;
+                border-style: none;
+                border-radius: 25px;
+                padding: 15px 15px;
+                box-shadow: 20px 20px 50px 15px grey;
+                background-color: ivory;
+
+
+            }
+         
+            h2{
+                display: inline-block;
+                border-style: none;
+                border-radius: 25px;
+                padding: 15px 15px;
+                box-shadow: 20px 20px 50px 15px grey;
+                background-color: ivory;
+            }
+        </style>
+    </head>
+    <body>
+       
+        <h2>Login</h2><br>
+
+        <form class="loginform" action="/loginhandler" method="POST">
+            <label>Welcome!</label><br>
+            <label for="Email">Email:</label><br>
+            <input type="text" id="email" name="email"><br>
+            <label for="password">Password:</label><br>
+            <input type="password" id="password" name="password"><br><br>
+            <input type="submit" value="Submit">
+        </form>
+        <p>{{.txt}}</p>
+    </body>
+</html>
